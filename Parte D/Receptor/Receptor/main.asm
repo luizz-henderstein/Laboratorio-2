@@ -31,6 +31,8 @@ principal:
     brlo principal
     cpi r16, 0x38
     brsh principal
+    subi r16, 0x30
+    rcall mostrar
     rjmp principal
 
 initUART:
@@ -49,4 +51,29 @@ getc:
     sbrs r17, RXC0
     rjmp getc
     lds r16, UDR0
+    ret
+
+mostrar:
+    ldi r18, 1
+    mov r19, r16
+    cpi r19, 0
+    breq escribir
+
+desplazar:
+    lsl r18
+    dec r19
+    brne desplazar
+
+escribir:
+    clr r17
+    out PORTB, r17
+    out PORTC, r17
+    mov r17, r18
+    andi r17, 0b00111111
+    out PORTB, r17
+    swap r18
+    lsr r18
+    lsr r18
+    andi r18, 0b00000011
+    out PORTC, r18
     ret
