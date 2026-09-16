@@ -1,0 +1,18 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Atmel Studio Solution File, Format Version 11.00
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{DDF14A62-1AF2-47CD-82FB-0A73B5BEDF16}") = "Receptor", "Receptor\Receptor.asmproj", "{93EFDFF2-D6AB-46D9-9841-13C1D637DE10}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{93EFDFF2-D6AB-46D9-9841-13C1D637DE10}.Debug|AVR.ActiveCfg = Debug|AVR
+		{93EFDFF2-D6AB-46D9-9841-13C1D637DE10}.Debug|AVR.Build.0 = Debug|AVR
+		{93EFDFF2-D6AB-46D9-9841-13C1D637DE10}.Release|AVR.ActiveCfg = Release|AVR
+		{93EFDFF2-D6AB-46D9-9841-13C1D637DE10}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+EndGlobal
