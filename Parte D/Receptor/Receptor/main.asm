@@ -25,6 +25,12 @@ inicio:
 
 principal:
     rcall getc
+    andi r17, (1<<FE0)|(1<<DOR0)|(1<<UPE0)
+    brne principal
+    cpi r16, 0x30
+    brlo principal
+    cpi r16, 0x38
+    brsh principal
     rjmp principal
 
 initUART:
