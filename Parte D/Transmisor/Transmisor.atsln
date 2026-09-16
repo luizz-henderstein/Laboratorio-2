@@ -1,0 +1,18 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Atmel Studio Solution File, Format Version 11.00
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{DDF14A62-1AF2-47CD-82FB-0A73B5BEDF16}") = "Transmisor", "Transmisor\Transmisor.asmproj", "{6D27818A-C686-4D42-867E-6CB00221D1A1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6D27818A-C686-4D42-867E-6CB00221D1A1}.Debug|AVR.ActiveCfg = Debug|AVR
+		{6D27818A-C686-4D42-867E-6CB00221D1A1}.Debug|AVR.Build.0 = Debug|AVR
+		{6D27818A-C686-4D42-867E-6CB00221D1A1}.Release|AVR.ActiveCfg = Release|AVR
+		{6D27818A-C686-4D42-867E-6CB00221D1A1}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+EndGlobal
