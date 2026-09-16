@@ -1,4 +1,7 @@
 .include "m328pdef.inc"
+.equ F_CPU = 16000000
+.equ BAUD = 9600
+.equ BPS = (F_CPU/16/BAUD)-1
 
 .cseg
 .org 0x0000
@@ -13,6 +16,9 @@ inicio:
     out DDRC, r16
     ldi r16, 0b00000111
     out PORTC, r16
+    ldi r16, LOW(BPS)
+    ldi r17, HIGH(BPS)
+    rcall initUART
 
 nueva_lectura:
     rcall leer_pulsadores
@@ -32,6 +38,17 @@ leer_pulsadores:
     in r16, PINC
     com r16
     andi r16, 0b00000111
+    ret
+
+initUART:
+    sts UBRR0L, r16
+    sts UBRR0H, r17
+    clr r16
+    sts UCSR0A, r16
+    ldi r16, (1<<TXEN0)
+    sts UCSR0B, r16
+    ldi r16, (1<<UCSZ01)|(1<<UCSZ00)
+    sts UCSR0C, r16
     ret
 
 demora_1ms:
