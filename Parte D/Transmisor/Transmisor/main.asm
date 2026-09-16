@@ -32,6 +32,8 @@ estabilizar:
     brne nueva_lectura
     dec r19
     brne estabilizar
+    subi r16, -0x30
+    rcall putc
     rjmp nueva_lectura
 
 leer_pulsadores:
@@ -49,6 +51,13 @@ initUART:
     sts UCSR0B, r16
     ldi r16, (1<<UCSZ01)|(1<<UCSZ00)
     sts UCSR0C, r16
+    ret
+
+putc:
+    lds r17, UCSR0A
+    sbrs r17, UDRE0
+    rjmp putc
+    sts UDR0, r16
     ret
 
 demora_1ms:
