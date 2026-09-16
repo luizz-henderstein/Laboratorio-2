@@ -24,6 +24,7 @@ inicio:
     rcall initUART
 
 principal:
+    rcall getc
     rjmp principal
 
 initUART:
@@ -35,4 +36,11 @@ initUART:
     sts UCSR0B, r16
     ldi r16, (1<<UCSZ01)|(1<<UCSZ00)
     sts UCSR0C, r16
+    ret
+
+getc:
+    lds r17, UCSR0A
+    sbrs r17, RXC0
+    rjmp getc
+    lds r16, UDR0
     ret
