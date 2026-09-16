@@ -15,4 +15,11 @@ inicio:
     out PORTC, r16
 
 principal:
+    rcall leer_pulsadores
     rjmp principal
+
+leer_pulsadores:
+    in r16, PINC
+    com r16
+    andi r16, 0b00000111
+    ret
