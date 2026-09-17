@@ -1,5 +1,9 @@
 .include "m328pdef.inc"
 
+.equ F_CPU = 16000000
+.equ BAUD = 9600
+.equ BPS = (F_CPU/8/BAUD)-1
+
 .equ BOTON_ABRIR = PC0
 .equ BOTON_CERRAR = PC1
 .equ FIN_ABIERTA = PC2
@@ -29,5 +33,20 @@ inicio:
     ldi r16, (1<<OBSTACULO)
     out PORTD, r16
 
+    ldi r16, LOW(BPS)
+    ldi r17, HIGH(BPS)
+    rcall initUART
+
 principal:
     rjmp principal
+
+initUART:
+    sts UBRR0L, r16
+    sts UBRR0H, r17
+    ldi r16, (1<<U2X0)
+    sts UCSR0A, r16
+    ldi r16, (1<<TXEN0)
+    sts UCSR0B, r16
+    ldi r16, (1<<UCSZ01)|(1<<UCSZ00)
+    sts UCSR0C, r16
+    ret
