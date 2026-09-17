@@ -1,5 +1,14 @@
 .include "m328pdef.inc"
 
+.equ BOTON_ABRIR = PC0
+.equ BOTON_CERRAR = PC1
+.equ FIN_ABIERTA = PC2
+.equ FIN_CERRADA = PC3
+.equ OBSTACULO = PD4
+.equ MOTOR_SUBIENDO = PD5
+.equ MOTOR_BAJANDO = PD6
+.equ ALARMA = PD7
+
 .cseg
 .org 0x0000
     rjmp inicio
@@ -9,6 +18,16 @@ inicio:
     out SPH, r16
     ldi r16, LOW(RAMEND)
     out SPL, r16
+
+    clr r16
+    out DDRC, r16
+    ldi r16, (1<<BOTON_ABRIR)|(1<<BOTON_CERRAR)|(1<<FIN_ABIERTA)|(1<<FIN_CERRADA)
+    out PORTC, r16
+
+    ldi r16, (1<<MOTOR_SUBIENDO)|(1<<MOTOR_BAJANDO)|(1<<ALARMA)
+    out DDRD, r16
+    ldi r16, (1<<OBSTACULO)
+    out PORTD, r16
 
 principal:
     rjmp principal
