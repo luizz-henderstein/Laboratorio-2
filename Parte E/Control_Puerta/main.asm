@@ -13,6 +13,11 @@
 .equ MOTOR_BAJANDO = PD6
 .equ ALARMA = PD7
 
+.equ ESTADO_CERRADA = 0
+.equ ESTADO_ABRIENDO = 1
+.equ ESTADO_ABIERTA = 2
+.equ ESTADO_CERRANDO = 3
+
 .cseg
 .org 0x0000
     rjmp inicio
@@ -37,8 +42,66 @@ inicio:
     ldi r17, HIGH(BPS)
     rcall initUART
 
+    ldi r20, ESTADO_CERRADA
+
 principal:
+    cpi r20, ESTADO_CERRADA
+    breq puerta_cerrada
+    cpi r20, ESTADO_ABRIENDO
+    breq puerta_abriendo
+    cpi r20, ESTADO_ABIERTA
+    breq puerta_abierta
+    rjmp puerta_cerrando
+
+puerta_cerrada:
+    sbis PINC, BOTON_ABRIR
+    rjmp iniciar_apertura
     rjmp principal
+
+puerta_abriendo:
+    sbis PINC, FIN_ABIERTA
+    rjmp finalizar_apertura
+    rjmp principal
+
+puerta_abierta:
+    sbis PINC, BOTON_CERRAR
+    rjmp iniciar_cierre
+    rjmp principal
+
+puerta_cerrando:
+    sbis PINC, FIN_CERRADA
+    rjmp finalizar_cierre
+    rjmp principal
+
+iniciar_apertura:
+    ldi r20, ESTADO_ABRIENDO
+    cbi PORTD, MOTOR_BAJANDO
+    sbi PORTD, MOTOR_SUBIENDO
+    sbi PORTD, ALARMA
+    rjmp principal
+
+finalizar_apertura:
+    rcall apagar_salidas
+    ldi r20, ESTADO_ABIERTA
+    rjmp principal
+
+iniciar_cierre:
+    ldi r20, ESTADO_CERRANDO
+    cbi PORTD, MOTOR_SUBIENDO
+    sbi PORTD, MOTOR_BAJANDO
+    sbi PORTD, ALARMA
+    rjmp principal
+
+finalizar_cierre:
+    rcall apagar_salidas
+    ldi r20, ESTADO_CERRADA
+    rjmp principal
+
+apagar_salidas:
+    cbi PORTD, MOTOR_SUBIENDO
+    cbi PORTD, MOTOR_BAJANDO
+    cbi PORTD, ALARMA
+    ret
 
 initUART:
     sts UBRR0L, r16
