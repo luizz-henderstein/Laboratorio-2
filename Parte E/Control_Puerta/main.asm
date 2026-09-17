@@ -17,10 +17,16 @@
 .equ ESTADO_ABRIENDO = 1
 .equ ESTADO_ABIERTA = 2
 .equ ESTADO_CERRANDO = 3
+.equ ESTADO_SEGURIDAD = 4
 
 .cseg
 .org 0x0000
     rjmp inicio
+
+.org PCI2addr
+    rjmp isr_obstaculo
+
+.org 0x0100
 
 inicio:
     ldi r16, HIGH(RAMEND)
@@ -42,7 +48,15 @@ inicio:
     ldi r17, HIGH(BPS)
     rcall initUART
 
+    ldi r16, (1<<PCINT20)
+    sts PCMSK2, r16
+    ldi r16, (1<<PCIF2)
+    out PCIFR, r16
+    ldi r16, (1<<PCIE2)
+    sts PCICR, r16
+
     ldi r20, ESTADO_CERRADA
+    sei
 
 principal:
     cpi r20, ESTADO_CERRADA
@@ -51,7 +65,9 @@ principal:
     breq puerta_abriendo
     cpi r20, ESTADO_ABIERTA
     breq puerta_abierta
-    rjmp puerta_cerrando
+    cpi r20, ESTADO_CERRANDO
+    breq puerta_cerrando
+    rjmp puerta_seguridad
 
 puerta_cerrada:
     sbis PINC, BOTON_ABRIR
@@ -73,28 +89,107 @@ puerta_cerrando:
     rjmp finalizar_cierre
     rjmp principal
 
+puerta_seguridad:
+    sbis PIND, OBSTACULO
+    rjmp principal
+    sbis PINC, BOTON_ABRIR
+    rjmp reanudar_apertura
+    sbis PINC, BOTON_CERRAR
+    rjmp reanudar_cierre
+    rjmp principal
+
 iniciar_apertura:
+    sbis PIND, OBSTACULO
+    rjmp principal
+    cli
+    cpi r20, ESTADO_CERRADA
+    brne cancelar_apertura
     ldi r20, ESTADO_ABRIENDO
     cbi PORTD, MOTOR_BAJANDO
     sbi PORTD, MOTOR_SUBIENDO
     sbi PORTD, ALARMA
+    sei
+    rjmp principal
+
+cancelar_apertura:
+    sei
     rjmp principal
 
 finalizar_apertura:
+    cli
+    cpi r20, ESTADO_ABRIENDO
+    brne cancelar_fin_apertura
     rcall apagar_salidas
     ldi r20, ESTADO_ABIERTA
+    sei
+    rjmp principal
+
+cancelar_fin_apertura:
+    sei
     rjmp principal
 
 iniciar_cierre:
+    sbis PIND, OBSTACULO
+    rjmp principal
+    cli
+    cpi r20, ESTADO_ABIERTA
+    brne cancelar_cierre
     ldi r20, ESTADO_CERRANDO
     cbi PORTD, MOTOR_SUBIENDO
     sbi PORTD, MOTOR_BAJANDO
     sbi PORTD, ALARMA
+    sei
+    rjmp principal
+
+cancelar_cierre:
+    sei
     rjmp principal
 
 finalizar_cierre:
+    cli
+    cpi r20, ESTADO_CERRANDO
+    brne cancelar_fin_cierre
     rcall apagar_salidas
     ldi r20, ESTADO_CERRADA
+    sei
+    rjmp principal
+
+cancelar_fin_cierre:
+    sei
+    rjmp principal
+
+reanudar_apertura:
+    cli
+    cpi r20, ESTADO_SEGURIDAD
+    brne cancelar_reanudacion_apertura
+    sbis PIND, OBSTACULO
+    rjmp cancelar_reanudacion_apertura
+    ldi r20, ESTADO_ABRIENDO
+    cbi PORTD, MOTOR_BAJANDO
+    sbi PORTD, MOTOR_SUBIENDO
+    sbi PORTD, ALARMA
+    sei
+    rjmp principal
+
+cancelar_reanudacion_apertura:
+    sei
+    rjmp principal
+
+reanudar_cierre:
+    cli
+    cpi r20, ESTADO_SEGURIDAD
+    brne cancelar_reanudacion_cierre
+    sbis PIND, OBSTACULO
+    rjmp cancelar_reanudacion_cierre
+    ldi r20, ESTADO_CERRANDO
+    cbi PORTD, MOTOR_SUBIENDO
+    sbi PORTD, MOTOR_BAJANDO
+    sbi PORTD, ALARMA
+    sei
+    rjmp principal
+
+cancelar_reanudacion_cierre:
+    sei
     rjmp principal
 
 apagar_salidas:
@@ -102,6 +197,30 @@ apagar_salidas:
     cbi PORTD, MOTOR_BAJANDO
     cbi PORTD, ALARMA
     ret
+
+isr_obstaculo:
+    push r16
+    in r16, SREG
+    push r16
+
+    sbic PIND, OBSTACULO
+    rjmp salir_interrupcion
+    cpi r20, ESTADO_ABRIENDO
+    breq detener_por_obstaculo
+    cpi r20, ESTADO_CERRANDO
+    brne salir_interrupcion
+
+detener_por_obstaculo:
+    cbi PORTD, MOTOR_SUBIENDO
+    cbi PORTD, MOTOR_BAJANDO
+    cbi PORTD, ALARMA
+    ldi r20, ESTADO_SEGURIDAD
+
+salir_interrupcion:
+    pop r16
+    out SREG, r16
+    pop r16
+    reti
 
 initUART:
     sts UBRR0L, r16
