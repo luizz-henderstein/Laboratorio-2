@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Atmel Studio Solution File, Format Version 11.00
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{DDF14A62-1AF2-47CD-82FB-0A73B5BEDF16}") = "Control_Puerta", "Control_Puerta\Control_Puerta.asmproj", "{8B3D2F49-3DA9-4A5A-88E6-A3F025203C84}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B3D2F49-3DA9-4A5A-88E6-A3F025203C84}.Debug|AVR.ActiveCfg = Debug|AVR
+		{8B3D2F49-3DA9-4A5A-88E6-A3F025203C84}.Debug|AVR.Build.0 = Debug|AVR
+		{8B3D2F49-3DA9-4A5A-88E6-A3F025203C84}.Release|AVR.ActiveCfg = Release|AVR
+		{8B3D2F49-3DA9-4A5A-88E6-A3F025203C84}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
