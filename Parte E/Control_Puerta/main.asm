@@ -56,9 +56,19 @@ inicio:
     sts PCICR, r16
 
     ldi r20, ESTADO_CERRADA
+    clr r21
+    rcall demora_inicio
+    rcall mensaje_cerrada
     sei
 
 principal:
+    tst r21
+    breq revisar_estado
+    clr r21
+    rcall mensaje_obstaculo
+    rcall mensaje_seguridad
+
+revisar_estado:
     cpi r20, ESTADO_CERRADA
     breq puerta_cerrada
     cpi r20, ESTADO_ABRIENDO
@@ -109,6 +119,7 @@ iniciar_apertura:
     sbi PORTD, MOTOR_SUBIENDO
     sbi PORTD, ALARMA
     sei
+    rcall mensaje_abriendo
     rjmp principal
 
 cancelar_apertura:
@@ -122,6 +133,7 @@ finalizar_apertura:
     rcall apagar_salidas
     ldi r20, ESTADO_ABIERTA
     sei
+    rcall mensaje_abierta
     rjmp principal
 
 cancelar_fin_apertura:
@@ -139,6 +151,7 @@ iniciar_cierre:
     sbi PORTD, MOTOR_BAJANDO
     sbi PORTD, ALARMA
     sei
+    rcall mensaje_cerrando
     rjmp principal
 
 cancelar_cierre:
@@ -152,6 +165,7 @@ finalizar_cierre:
     rcall apagar_salidas
     ldi r20, ESTADO_CERRADA
     sei
+    rcall mensaje_cerrada
     rjmp principal
 
 cancelar_fin_cierre:
@@ -169,6 +183,7 @@ reanudar_apertura:
     sbi PORTD, MOTOR_SUBIENDO
     sbi PORTD, ALARMA
     sei
+    rcall mensaje_abriendo
     rjmp principal
 
 cancelar_reanudacion_apertura:
@@ -186,6 +201,7 @@ reanudar_cierre:
     sbi PORTD, MOTOR_BAJANDO
     sbi PORTD, ALARMA
     sei
+    rcall mensaje_cerrando
     rjmp principal
 
 cancelar_reanudacion_cierre:
@@ -215,6 +231,7 @@ detener_por_obstaculo:
     cbi PORTD, MOTOR_BAJANDO
     cbi PORTD, ALARMA
     ldi r20, ESTADO_SEGURIDAD
+    ldi r21, 1
 
 salir_interrupcion:
     pop r16
@@ -232,3 +249,81 @@ initUART:
     ldi r16, (1<<UCSZ01)|(1<<UCSZ00)
     sts UCSR0C, r16
     ret
+
+putc:
+    lds r17, UCSR0A
+    sbrs r17, UDRE0
+    rjmp putc
+    sts UDR0, r16
+    ret
+
+enviar_texto:
+    lpm r16, Z+
+    tst r16
+    breq fin_texto
+    rcall putc
+    rjmp enviar_texto
+
+fin_texto:
+    ret
+
+demora_inicio:
+    ldi r24, 100
+
+demora_100ms:
+    ldi r25, 21
+
+demora_1ms:
+    ldi r26, 250
+
+demora_ciclo:
+    dec r26
+    brne demora_ciclo
+    dec r25
+    brne demora_1ms
+    dec r24
+    brne demora_100ms
+    ret
+
+mensaje_abriendo:
+    ldi ZH, HIGH(texto_abriendo*2)
+    ldi ZL, LOW(texto_abriendo*2)
+    rjmp enviar_texto
+
+mensaje_abierta:
+    ldi ZH, HIGH(texto_abierta*2)
+    ldi ZL, LOW(texto_abierta*2)
+    rjmp enviar_texto
+
+mensaje_cerrando:
+    ldi ZH, HIGH(texto_cerrando*2)
+    ldi ZL, LOW(texto_cerrando*2)
+    rjmp enviar_texto
+
+mensaje_cerrada:
+    ldi ZH, HIGH(texto_cerrada*2)
+    ldi ZL, LOW(texto_cerrada*2)
+    rjmp enviar_texto
+
+mensaje_obstaculo:
+    ldi ZH, HIGH(texto_obstaculo*2)
+    ldi ZL, LOW(texto_obstaculo*2)
+    rjmp enviar_texto
+
+mensaje_seguridad:
+    ldi ZH, HIGH(texto_seguridad*2)
+    ldi ZL, LOW(texto_seguridad*2)
+    rjmp enviar_texto
+
+texto_abriendo:
+    .db "Puerta abriendo.",13,10,0,0
+texto_abierta:
+    .db "Puerta abierta.",13,10,0
+texto_cerrando:
+    .db "Puerta cerrando.",13,10,0,0
+texto_cerrada:
+    .db "Puerta cerrada.",13,10,0
+texto_obstaculo:
+    .db "Obst",0xC3,0xA1,"culo detectado.",13,10,0
+texto_seguridad:
+    .db "Movimiento detenido por seguridad.",13,10,0,0
