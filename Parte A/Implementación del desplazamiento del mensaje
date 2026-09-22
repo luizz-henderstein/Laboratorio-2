@@ -1,0 +1,52 @@
+void mostrarTexto(String mensaje) {
+  int anchoMensaje = mensaje.length() * 6;
+
+  for (int posicion = -8; posicion < anchoMensaje + 8; posicion++) {
+
+    int valorPot = analogRead(pinPot);
+    velocidad = map(valorPot, 0, 1023, 40, 250);
+
+    unsigned long inicio = millis();
+
+    while (millis() - inicio < velocidad) {
+
+      for (int fila = 0; fila < 8; fila++) {
+
+        apagarTodo();
+
+        digitalWrite(filas[fila], LOW);
+
+        if (fila >= 1 && fila <= 5) {
+
+          int filaLetra = fila - 1;
+
+          for (int columna = 0; columna < 8; columna++) {
+
+            int posicionMensaje = posicion + columna;
+
+            if (posicionMensaje >= 0 && posicionMensaje < anchoMensaje) {
+
+              int numeroLetra = posicionMensaje / 6;
+              int columnaLetra = posicionMensaje % 6;
+
+              if (columnaLetra < 5) {
+
+                char letra = mensaje.charAt(numeroLetra);
+
+                byte datosFila = obtenerFilaLetra(letra, filaLetra);
+
+                if (bitRead(datosFila, 4 - columnaLetra)) {
+                  digitalWrite(columnas[columna], HIGH);
+                }
+              }
+            }
+          }
+        }
+
+        delayMicroseconds(1000);
+      }
+    }
+  }
+
+  apagarTodo();
+}
