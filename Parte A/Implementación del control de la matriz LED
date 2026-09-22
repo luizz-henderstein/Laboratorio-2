@@ -1,0 +1,42 @@
+int filas[8] = {2, 3, 4, 5, 6, 7, 8, 9};
+int columnas[8] = {10, 11, 12, 13, A0, A1, A2, A3};
+
+int pinPot = A4;
+int velocidad = 100;
+
+void apagarTodo() {
+  for (int i = 0; i < 8; i++) {
+    digitalWrite(filas[i], HIGH);
+    digitalWrite(columnas[i], LOW);
+  }
+}
+
+void mostrarImagen(byte imagen[8]) {
+  for (int fila = 0; fila < 8; fila++) {
+    apagarTodo();
+
+    digitalWrite(filas[fila], LOW);
+
+    for (int columna = 0; columna < 8; columna++) {
+      if (bitRead(imagen[fila], 7 - columna)) {
+        digitalWrite(columnas[columna], HIGH);
+      }
+    }
+
+    delayMicroseconds(1000);
+  }
+}
+
+void setup() {
+  for (int i = 0; i < 8; i++) {
+    pinMode(filas[i], OUTPUT);
+    pinMode(columnas[i], OUTPUT);
+  }
+
+  pinMode(pinPot, INPUT);
+
+  apagarTodo();
+}
+
+void loop() {
+}
