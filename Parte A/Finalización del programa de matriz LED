@@ -1,0 +1,330 @@
+int filas[8] = {2, 3, 4, 5, 6, 7, 8, 9};
+int columnas[8] = {10, 11, 12, 13, A0, A1, A2, A3};
+
+int pinPot = A4;
+int velocidad = 100;
+
+byte caraFeliz[8] = {
+  B00111100,
+  B01000010,
+  B10100101,
+  B10000001,
+  B10100101,
+  B10011001,
+  B01000010,
+  B00111100
+};
+
+byte caraGuino[8] = {
+  B00111100,
+  B01000010,
+  B10000101,
+  B10000001,
+  B10100101,
+  B10011001,
+  B01000010,
+  B00111100
+};
+
+byte corazon[8] = {
+  B01100110,
+  B11111111,
+  B11111111,
+  B11111111,
+  B01111110,
+  B00111100,
+  B00011000,
+  B00000000
+};
+
+byte cara3[8] = {
+  B00000000,
+  B01000010,
+  B00000000,
+  B00000000,
+  B01000010,
+  B00100100,
+  B00011000,
+  B00000000
+};
+
+byte xd[8] = {
+  B10000001,
+  B01000010,
+  B00100100,
+  B00011000,
+  B00011000,
+  B00100100,
+  B01000010,
+  B10000001
+};
+
+byte letraM[5] = {
+  B10001,
+  B11011,
+  B10101,
+  B10001,
+  B10001
+};
+
+byte letraI[5] = {
+  B11111,
+  B00100,
+  B00100,
+  B00100,
+  B11111
+};
+
+byte letraC[5] = {
+  B01111,
+  B10000,
+  B10000,
+  B10000,
+  B01111
+};
+
+byte letraR[5] = {
+  B11110,
+  B10001,
+  B11110,
+  B10100,
+  B10010
+};
+
+byte letraO[5] = {
+  B01110,
+  B10001,
+  B10001,
+  B10001,
+  B01110
+};
+
+byte letraS[5] = {
+  B01111,
+  B10000,
+  B01110,
+  B00001,
+  B11110
+};
+
+byte letraL[5] = {
+  B10000,
+  B10000,
+  B10000,
+  B10000,
+  B11111
+};
+
+byte letraE[5] = {
+  B11111,
+  B10000,
+  B11110,
+  B10000,
+  B11111
+};
+
+byte letraJ[5] = {
+  B00111,
+  B00010,
+  B00010,
+  B10010,
+  B01100
+};
+
+byte letraX[5] = {
+  B10001,
+  B01010,
+  B00100,
+  B01010,
+  B10001
+};
+
+byte letraD[5] = {
+  B11110,
+  B10001,
+  B10001,
+  B10001,
+  B11110
+};
+
+byte obtenerFilaLetra(char letra, int fila) {
+  if (letra == 'M') return letraM[fila];
+  if (letra == 'I') return letraI[fila];
+  if (letra == 'C') return letraC[fila];
+  if (letra == 'R') return letraR[fila];
+  if (letra == 'O') return letraO[fila];
+  if (letra == 'S') return letraS[fila];
+  if (letra == 'L') return letraL[fila];
+  if (letra == 'E') return letraE[fila];
+  if (letra == 'J') return letraJ[fila];
+  if (letra == 'X') return letraX[fila];
+  if (letra == 'D') return letraD[fila];
+
+  return B00000;
+}
+
+void apagarTodo() {
+  for (int i = 0; i < 8; i++) {
+    digitalWrite(filas[i], HIGH);
+    digitalWrite(columnas[i], LOW);
+  }
+}
+
+void mostrarImagen(byte imagen[8]) {
+  for (int fila = 0; fila < 8; fila++) {
+    apagarTodo();
+
+    digitalWrite(filas[fila], LOW);
+
+    for (int columna = 0; columna < 8; columna++) {
+      if (bitRead(imagen[fila], 7 - columna)) {
+        digitalWrite(columnas[columna], HIGH);
+      }
+    }
+
+    delayMicroseconds(1000);
+  }
+}
+
+void mostrarFigura(byte imagen[8]) {
+  unsigned long inicio = millis();
+
+  while (millis() - inicio < 3000) {
+    mostrarImagen(imagen);
+
+    if (Serial.available() > 0) {
+      char opcion = Serial.read();
+
+      if (opcion >= '1' && opcion <= '6') {
+        return;
+      }
+    }
+  }
+
+  apagarTodo();
+  mostrarMenu();
+}
+
+void mostrarTexto(String mensaje) {
+  int anchoMensaje = mensaje.length() * 6;
+
+  for (int posicion = -8; posicion < anchoMensaje + 8; posicion++) {
+
+    int valorPot = analogRead(pinPot);
+    velocidad = map(valorPot, 0, 1023, 40, 250);
+
+    unsigned long inicio = millis();
+
+    while (millis() - inicio < velocidad) {
+
+      for (int fila = 0; fila < 8; fila++) {
+
+        apagarTodo();
+
+        digitalWrite(filas[fila], LOW);
+
+        if (fila >= 1 && fila <= 5) {
+
+          int filaLetra = fila - 1;
+
+          for (int columna = 0; columna < 8; columna++) {
+
+            int posicionMensaje = posicion + columna;
+
+            if (posicionMensaje >= 0 && posicionMensaje < anchoMensaje) {
+
+              int numeroLetra = posicionMensaje / 6;
+              int columnaLetra = posicionMensaje % 6;
+
+              if (columnaLetra < 5) {
+
+                char letra = mensaje.charAt(numeroLetra);
+
+                byte datosFila = obtenerFilaLetra(letra, filaLetra);
+
+                if (bitRead(datosFila, 4 - columnaLetra)) {
+                  digitalWrite(columnas[columna], HIGH);
+                }
+              }
+            }
+          }
+        }
+
+        delayMicroseconds(1000);
+      }
+    }
+
+    if (Serial.available() > 0) {
+
+      char opcion = Serial.read();
+
+      if (opcion >= '1' && opcion <= '6') {
+        return;
+      }
+    }
+  }
+
+  apagarTodo();
+  mostrarMenu();
+}
+
+void mostrarMenu() {
+  Serial.println();
+  Serial.println("MENU");
+  Serial.println("1 - MICROS LO MEJOR");
+  Serial.println("2 - Cara feliz");
+  Serial.println("3 - Cara guino");
+  Serial.println("4 - Corazon");
+  Serial.println("5 - :3");
+  Serial.println("6 - XD");
+  Serial.println();
+  Serial.println("Seleccione una opcion:");
+}
+
+void setup() {
+
+  for (int i = 0; i < 8; i++) {
+    pinMode(filas[i], OUTPUT);
+    pinMode(columnas[i], OUTPUT);
+  }
+
+  pinMode(pinPot, INPUT);
+
+  apagarTodo();
+
+  Serial.begin(9600);
+
+  mostrarMenu();
+}
+
+void loop() {
+
+  if (Serial.available() > 0) {
+
+    char opcion = Serial.read();
+
+    if (opcion == '1') {
+      mostrarTexto("MICROS LO MEJOR");
+    }
+
+    else if (opcion == '2') {
+      mostrarFigura(caraFeliz);
+    }
+
+    else if (opcion == '3') {
+      mostrarFigura(caraGuino);
+    }
+
+    else if (opcion == '4') {
+      mostrarFigura(corazon);
+    }
+
+    else if (opcion == '5') {
+      mostrarFigura(cara3);
+    }
+
+    else if (opcion == '6') {
+      mostrarTexto("XD");
+    }
+  }
+}
