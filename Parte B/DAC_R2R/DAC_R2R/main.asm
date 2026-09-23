@@ -10,6 +10,7 @@
 .def senal = r19
 .def caracter = r20
 .def cero = r22
+.def velocidad = r23
 
 .cseg
 .org 0x0000
@@ -61,6 +62,7 @@ inicio:
 
     clr indice
     clr senal
+    ldi velocidad, 1
     ldi ZH, HIGH(menu*2)
     ldi ZL, LOW(menu*2)
     rcall enviar_cadena
@@ -76,6 +78,14 @@ principal:
     breq elegir_senal_1
     cpi caracter, '2'
     breq elegir_senal_18
+    cpi caracter, '+'
+    breq aumentar_frecuencia
+    cpi caracter, '-'
+    breq disminuir_frecuencia
+    cpi caracter, 'm'
+    breq mostrar_menu
+    cpi caracter, 'M'
+    breq mostrar_menu
     rjmp principal
 
 elegir_senal_1:
@@ -97,6 +107,60 @@ elegir_senal_18:
     ldi ZL, LOW(mensaje_senal_18*2)
     rcall enviar_cadena
     rjmp principal
+
+aumentar_frecuencia:
+    cpi velocidad, 2
+    breq principal
+    inc velocidad
+    rcall aplicar_velocidad
+    ldi ZH, HIGH(mensaje_frecuencia*2)
+    ldi ZL, LOW(mensaje_frecuencia*2)
+    rcall enviar_cadena
+    rjmp principal
+
+disminuir_frecuencia:
+    tst velocidad
+    breq principal
+    dec velocidad
+    rcall aplicar_velocidad
+    ldi ZH, HIGH(mensaje_frecuencia*2)
+    ldi ZL, LOW(mensaje_frecuencia*2)
+    rcall enviar_cadena
+    rjmp principal
+
+mostrar_menu:
+    ldi ZH, HIGH(menu*2)
+    ldi ZL, LOW(menu*2)
+    rcall enviar_cadena
+    rjmp principal
+
+aplicar_velocidad:
+    tst velocidad
+    breq velocidad_lenta
+    cpi velocidad, 1
+    breq velocidad_media
+    ldi muestra, HIGH(499)
+    ldi temporal, LOW(499)
+    rjmp guardar_periodo
+
+velocidad_media:
+    ldi muestra, HIGH(999)
+    ldi temporal, LOW(999)
+    rjmp guardar_periodo
+
+velocidad_lenta:
+    ldi muestra, HIGH(1999)
+    ldi temporal, LOW(1999)
+
+guardar_periodo:
+    cli
+    sts OCR1AH, muestra
+    sts OCR1AL, temporal
+    clr temporal
+    sts TCNT1H, temporal
+    sts TCNT1L, temporal
+    sei
+    ret
 
 iniciar_uart:
     sts UBRR0L, muestra
@@ -178,6 +242,9 @@ mensaje_senal_1:
 
 mensaje_senal_18:
     .db 13,10,"Senal 18 seleccionada",13,10,0
+
+mensaje_frecuencia:
+    .db 13,10,"Frecuencia actualizada",13,10,0,0
 
 tabla_senal_1:
     .db 0x80,0x83,0x86,0x89,0x8C,0x8F,0x92,0x95,0x98,0x9C,0x9F,0xA2,0xA5,0xA8,0xAB,0xAE
