@@ -11,6 +11,9 @@
 .org 0x0000
     rjmp inicio
 
+.org 0x0016
+    rjmp ISR_TIMER1_COMPA
+
 .org 0x0100
 
 inicio:
@@ -39,9 +42,23 @@ inicio:
     clr temporal
     sts OCR2B, temporal
 
+    clr temporal
+    sts TCCR1A, temporal
+    sts TCNT1H, temporal
+    sts TCNT1L, temporal
+    ldi temporal, HIGH(999)
+    sts OCR1AH, temporal
+    ldi temporal, LOW(999)
+    sts OCR1AL, temporal
+    ldi temporal, (1<<WGM12)|(1<<CS11)|(1<<CS10)
+    sts TCCR1B, temporal
+    ldi temporal, (1<<OCIE1A)
+    sts TIMSK1, temporal
+
     ldi ZH, HIGH(menu*2)
     ldi ZL, LOW(menu*2)
     rcall enviar_cadena
+    sei
 
 principal:
     rjmp principal
@@ -73,6 +90,9 @@ enviar_caracter:
     rjmp enviar_caracter
     sts UDR0, muestra
     ret
+
+ISR_TIMER1_COMPA:
+    reti
 
 menu:
     .db 13,10,"DAC R-2R - Grupo 9",13,10,"1: Senal 1",13,10,"2: Senal 18",13,10,"+: frecuencia mayor",13,10,"-: frecuencia menor",13,10,"M: mostrar menu",13,10,0,0
