@@ -13,6 +13,13 @@ inicio:
     out SPH, temporal
     ldi temporal, LOW(RAMEND)
     out SPL, temporal
+    ldi temporal, 0b00111111
+    out DDRB, temporal
+    ldi temporal, 0b00000011
+    out DDRC, temporal
+    clr temporal
+    out PORTB, temporal
+    out PORTC, temporal
 
 principal:
     rjmp principal
