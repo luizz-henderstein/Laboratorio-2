@@ -1,3 +1,0 @@
-else if (opcion == '6') {
-  mostrarTexto("XD");
-}
