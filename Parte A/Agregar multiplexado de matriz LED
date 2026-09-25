@@ -1,0 +1,184 @@
+.include "m328pdef.inc"
+
+.cseg
+.org 0x0000
+    rjmp RESET
+
+RESET:
+
+    ldi r16, HIGH(RAMEND)
+    out SPH, r16
+
+    ldi r16, LOW(RAMEND)
+    out SPL, r16
+
+    clr r1
+
+    ldi r16, 0b11111110
+    out DDRD, r16
+
+    ldi r16, 0b00111111
+    out DDRB, r16
+
+    ldi r16, 0b00001111
+    out DDRC, r16
+
+    clr r16
+    out PORTC, r16
+
+    rcall apagarTodo
+
+MAIN:
+
+    ldi XL, LOW(caraFeliz*2)
+    ldi XH, HIGH(caraFeliz*2)
+
+    rcall mostrarFrameImagen
+
+    rjmp MAIN
+
+apagarTodo:
+
+    in r16, PORTD
+    ori r16, 0b11111100
+    out PORTD, r16
+
+    in r16, PORTB
+    ori r16, 0b00000011
+    andi r16, 0b11000011
+    out PORTB, r16
+
+    in r16, PORTC
+    andi r16, 0b11110000
+    out PORTC, r16
+
+    ret
+
+mostrarFila:
+
+    rcall apagarTodo
+
+    cpi r18, 0
+    breq activarFila0
+
+    cpi r18, 1
+    breq activarFila1
+
+    cpi r18, 2
+    breq activarFila2
+
+    cpi r18, 3
+    breq activarFila3
+
+    cpi r18, 4
+    breq activarFila4
+
+    cpi r18, 5
+    breq activarFila5
+
+    cpi r18, 6
+    breq activarFila6
+
+    rjmp activarFila7
+
+activarFila0:
+    cbi PORTD, PD2
+    rjmp ponerColumnas
+
+activarFila1:
+    cbi PORTD, PD3
+    rjmp ponerColumnas
+
+activarFila2:
+    cbi PORTD, PD4
+    rjmp ponerColumnas
+
+activarFila3:
+    cbi PORTD, PD5
+    rjmp ponerColumnas
+
+activarFila4:
+    cbi PORTD, PD6
+    rjmp ponerColumnas
+
+activarFila5:
+    cbi PORTD, PD7
+    rjmp ponerColumnas
+
+activarFila6:
+    cbi PORTB, PB0
+    rjmp ponerColumnas
+
+activarFila7:
+    cbi PORTB, PB1
+
+ponerColumnas:
+
+    sbrc r19, 7
+    sbi PORTB, PB2
+
+    sbrc r19, 6
+    sbi PORTB, PB3
+
+    sbrc r19, 5
+    sbi PORTB, PB4
+
+    sbrc r19, 4
+    sbi PORTB, PB5
+
+    sbrc r19, 3
+    sbi PORTC, PC0
+
+    sbrc r19, 2
+    sbi PORTC, PC1
+
+    sbrc r19, 1
+    sbi PORTC, PC2
+
+    sbrc r19, 0
+    sbi PORTC, PC3
+
+    rcall delay1ms
+
+    ret
+
+mostrarFrameImagen:
+
+    movw ZL, XL
+
+    clr r18
+
+frameImagenLoop:
+
+    lpm r19, Z+
+
+    rcall mostrarFila
+
+    inc r18
+
+    cpi r18, 8
+    brlo frameImagenLoop
+
+    ret
+
+delay1ms:
+
+    ldi r24, 21
+
+delayA:
+
+    ldi r25, 250
+
+delayB:
+
+    dec r25
+    brne delayB
+
+    dec r24
+    brne delayA
+
+    ret
+
+caraFeliz:
+    .db 0b00111100, 0b01000010, 0b10100101, 0b10000001
+    .db 0b10100101, 0b10011001, 0b01000010, 0b00111100
