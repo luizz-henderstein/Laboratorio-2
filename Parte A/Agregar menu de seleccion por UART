@@ -1,0 +1,380 @@
+.include "m328pdef.inc"
+
+.cseg
+.org 0x0000
+    rjmp RESET
+
+RESET:
+
+    ldi r16, HIGH(RAMEND)
+    out SPH, r16
+
+    ldi r16, LOW(RAMEND)
+    out SPL, r16
+
+    clr r1
+
+    ldi r16, 0b11111110
+    out DDRD, r16
+
+    ldi r16, 0b00111111
+    out DDRB, r16
+
+    ldi r16, 0b00001111
+    out DDRC, r16
+
+    clr r16
+    out PORTC, r16
+
+    clr r16
+    sts UBRR0H, r16
+
+    ldi r16, 103
+    sts UBRR0L, r16
+
+    ldi r16, (1<<RXEN0) | (1<<TXEN0)
+    sts UCSR0B, r16
+
+    ldi r16, (1<<UCSZ01) | (1<<UCSZ00)
+    sts UCSR0C, r16
+
+    rcall apagarTodo
+    rcall limpiarUART
+    rcall mostrarMenu
+
+MAIN:
+
+    rcall leerOpcion
+
+    brcc MAIN
+
+    cpi r16, '2'
+    breq OPCION2
+
+    cpi r16, '3'
+    breq OPCION3
+
+    cpi r16, '4'
+    breq OPCION4
+
+    cpi r16, '5'
+    breq OPCION5
+
+    rjmp MAIN
+
+OPCION2:
+
+    rcall limpiarUART
+
+    ldi XL, LOW(caraFeliz*2)
+    ldi XH, HIGH(caraFeliz*2)
+
+    rcall mostrarFigura
+    rjmp MAIN
+
+OPCION3:
+
+    rcall limpiarUART
+
+    ldi XL, LOW(caraGuino*2)
+    ldi XH, HIGH(caraGuino*2)
+
+    rcall mostrarFigura
+    rjmp MAIN
+
+OPCION4:
+
+    rcall limpiarUART
+
+    ldi XL, LOW(corazon*2)
+    ldi XH, HIGH(corazon*2)
+
+    rcall mostrarFigura
+    rjmp MAIN
+
+OPCION5:
+
+    rcall limpiarUART
+
+    ldi XL, LOW(cara3*2)
+    ldi XH, HIGH(cara3*2)
+
+    rcall mostrarFigura
+    rjmp MAIN
+
+apagarTodo:
+
+    in r16, PORTD
+    ori r16, 0b11111100
+    out PORTD, r16
+
+    in r16, PORTB
+    ori r16, 0b00000011
+    andi r16, 0b11000011
+    out PORTB, r16
+
+    in r16, PORTC
+    andi r16, 0b11110000
+    out PORTC, r16
+
+    ret
+
+mostrarFila:
+
+    rcall apagarTodo
+
+    cpi r18, 0
+    breq activarFila0
+    cpi r18, 1
+    breq activarFila1
+    cpi r18, 2
+    breq activarFila2
+    cpi r18, 3
+    breq activarFila3
+    cpi r18, 4
+    breq activarFila4
+    cpi r18, 5
+    breq activarFila5
+    cpi r18, 6
+    breq activarFila6
+
+    rjmp activarFila7
+
+activarFila0:
+    cbi PORTD, PD2
+    rjmp ponerColumnas
+
+activarFila1:
+    cbi PORTD, PD3
+    rjmp ponerColumnas
+
+activarFila2:
+    cbi PORTD, PD4
+    rjmp ponerColumnas
+
+activarFila3:
+    cbi PORTD, PD5
+    rjmp ponerColumnas
+
+activarFila4:
+    cbi PORTD, PD6
+    rjmp ponerColumnas
+
+activarFila5:
+    cbi PORTD, PD7
+    rjmp ponerColumnas
+
+activarFila6:
+    cbi PORTB, PB0
+    rjmp ponerColumnas
+
+activarFila7:
+    cbi PORTB, PB1
+
+ponerColumnas:
+
+    sbrc r19, 7
+    sbi PORTB, PB2
+    sbrc r19, 6
+    sbi PORTB, PB3
+    sbrc r19, 5
+    sbi PORTB, PB4
+    sbrc r19, 4
+    sbi PORTB, PB5
+    sbrc r19, 3
+    sbi PORTC, PC0
+    sbrc r19, 2
+    sbi PORTC, PC1
+    sbrc r19, 1
+    sbi PORTC, PC2
+    sbrc r19, 0
+    sbi PORTC, PC3
+
+    rcall delay1ms
+
+    ret
+
+mostrarFrameImagen:
+
+    movw ZL, XL
+    clr r18
+
+frameImagenLoop:
+
+    lpm r19, Z+
+
+    rcall mostrarFila
+
+    inc r18
+
+    cpi r18, 8
+    brlo frameImagenLoop
+
+    ret
+
+mostrarFigura:
+
+    ldi r28, LOW(375)
+    ldi r29, HIGH(375)
+
+figuraLoop:
+
+    rcall mostrarFrameImagen
+
+    rcall leerOpcion
+
+    brcs figuraSalir
+
+    subi r28, 1
+    sbci r29, 0
+
+    brne figuraLoop
+
+figuraSalir:
+
+    rcall apagarTodo
+    rcall limpiarUART
+    rcall mostrarMenu
+
+    ret
+
+leerOpcion:
+
+    lds r16, UCSR0A
+
+    sbrs r16, RXC0
+    rjmp noHayDato
+
+    lds r16, UDR0
+
+    cpi r16, '1'
+    brlo datoInvalido
+
+    cpi r16, '7'
+    brsh datoInvalido
+
+    sec
+    ret
+
+datoInvalido:
+    clc
+    ret
+
+noHayDato:
+    clc
+    ret
+
+limpiarUART:
+
+    lds r16, UCSR0A
+
+    sbrs r16, RXC0
+    ret
+
+    lds r16, UDR0
+
+    rjmp limpiarUART
+
+uartEnviar:
+
+    lds r17, UCSR0A
+
+    sbrs r17, UDRE0
+    rjmp uartEnviar
+
+    sts UDR0, r16
+
+    ret
+
+uartTexto:
+
+    lpm r16, Z+
+
+    tst r16
+    breq uartTextoFin
+
+    rcall uartEnviar
+
+    rjmp uartTexto
+
+uartTextoFin:
+    ret
+
+mostrarMenu:
+
+    ldi ZL, LOW(menu0*2)
+    ldi ZH, HIGH(menu0*2)
+    rcall uartTexto
+
+    ldi ZL, LOW(menu2*2)
+    ldi ZH, HIGH(menu2*2)
+    rcall uartTexto
+
+    ldi ZL, LOW(menu3*2)
+    ldi ZH, HIGH(menu3*2)
+    rcall uartTexto
+
+    ldi ZL, LOW(menu4*2)
+    ldi ZH, HIGH(menu4*2)
+    rcall uartTexto
+
+    ldi ZL, LOW(menu5*2)
+    ldi ZH, HIGH(menu5*2)
+    rcall uartTexto
+
+    ldi ZL, LOW(menu7*2)
+    ldi ZH, HIGH(menu7*2)
+    rcall uartTexto
+
+    ret
+
+delay1ms:
+
+    ldi r24, 21
+
+delayA:
+    ldi r25, 250
+
+delayB:
+
+    dec r25
+    brne delayB
+
+    dec r24
+    brne delayA
+
+    ret
+
+caraFeliz:
+    .db 0b00111100, 0b01000010, 0b10100101, 0b10000001
+    .db 0b10100101, 0b10011001, 0b01000010, 0b00111100
+
+caraGuino:
+    .db 0b00111100, 0b01000010, 0b10000101, 0b10000001
+    .db 0b10100101, 0b10011001, 0b01000010, 0b00111100
+
+corazon:
+    .db 0b01100110, 0b11111111, 0b11111111, 0b11111111
+    .db 0b01111110, 0b00111100, 0b00011000, 0b00000000
+
+cara3:
+    .db 0b00000000, 0b01000010, 0b00000000, 0b00000000
+    .db 0b01000010, 0b00100100, 0b00011000, 0b00000000
+
+menu0:
+    .db 13,10,"MENU",13,10,0
+
+menu2:
+    .db "2 - Cara feliz",13,10,0
+
+menu3:
+    .db "3 - Cara guino",13,10,0
+
+menu4:
+    .db "4 - Corazon",13,10,0
+
+menu5:
+    .db "5 - :3",13,10,0
+
+menu7:
+    .db 13,10,"Seleccione una opcion:",13,10,0
