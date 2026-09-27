@@ -1,0 +1,41 @@
+.include "m328pdef.inc"
+
+.def temp       = r16
+.def segundos   = r17
+.def dir_mask   = r18
+.def dur_pasos  = r19
+.def contador   = r20
+.def pasos      = r21
+.def avance     = r22
+.def iniciado   = r23
+.def data       = r24
+
+.equ DIR_ABAJO      = (1 << PD4)
+.equ DIR_ARRIBA     = (1 << PD5)
+.equ DIR_DER        = (1 << PD6)
+.equ DIR_IZQ        = (1 << PD7)
+
+.equ DIR_ARR_DER    = (1 << PD5) | (1 << PD6)
+.equ DIR_ARR_IZQ    = (1 << PD5) | (1 << PD7)
+.equ DIR_ABJ_DER    = (1 << PD4) | (1 << PD6)
+.equ DIR_ABJ_IZQ    = (1 << PD4) | (1 << PD7)
+
+.org 0x0000
+    rjmp RESET
+
+RESET:
+
+    ldi temp, HIGH(RAMEND)
+    out SPH, temp
+
+    ldi temp, LOW(RAMEND)
+    out SPL, temp
+
+    ldi temp, 0b11111110
+    out DDRD, temp
+
+    clr temp
+    out PORTD, temp
+
+    clr avance
+    clr iniciado
