@@ -58,3 +58,43 @@ UART_PUTS:
 
 UART_PUTS_FIN:
     ret
+
+PRINT_MENU:
+
+    ldi ZL, LOW(2 * TXT_TITULO)
+    ldi ZH, HIGH(2 * TXT_TITULO)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_1)
+    ldi ZH, HIGH(2 * TXT_1)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_2)
+    ldi ZH, HIGH(2 * TXT_2)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_3)
+    ldi ZH, HIGH(2 * TXT_3)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_4)
+    ldi ZH, HIGH(2 * TXT_4)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_P)
+    ldi ZH, HIGH(2 * TXT_P)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_T)
+    ldi ZH, HIGH(2 * TXT_T)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_R)
+    ldi ZH, HIGH(2 * TXT_R)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_PROMPT)
+    ldi ZH, HIGH(2 * TXT_PROMPT)
+    rcall UART_PUTS
+
+    ret
