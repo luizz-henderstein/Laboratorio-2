@@ -98,3 +98,51 @@ PRINT_MENU:
     rcall UART_PUTS
 
     ret
+TXT_TITULO:
+    .db 13,10
+    .db "PLOTTER GRUPO 9",13,10
+    .db 0,0
+
+TXT_1:
+    .db "1 TRIANGULO",13,10
+    .db 0,0
+
+TXT_2:
+    .db "2 CIRCULO",13,10
+    .db 0,0
+
+TXT_3:
+    .db "3 PENTAGRAMA",13,10
+    .db 0,0
+
+TXT_4:
+    .db "4 CASA",13,10
+    .db 0,0
+
+TXT_P:
+    .db "P GASTLY",13,10
+    .db 0,0
+
+TXT_T:
+    .db "T TODAS",13,10
+    .db 0,0
+
+TXT_R:
+    .db "R MENU",13,10
+    .db 0,0
+
+TXT_PROMPT:
+    .db "> "
+    .db 0,0
+
+TXT_LISTO:
+    .db 13,10
+    .db "FIGURA TERMINADA",13,10
+    .db "> "
+    .db 0,0
+
+TXT_ERROR:
+    .db 13,10
+    .db "OPCION INCORRECTA",13,10
+    .db "> "
+    .db 0,0
