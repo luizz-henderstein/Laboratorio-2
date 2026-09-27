@@ -1,0 +1,732 @@
+.include "m328pdef.inc"
+
+.def temp       = r16
+.def segundos   = r17
+.def dir_mask   = r18
+.def dur_pasos  = r19
+.def contador   = r20
+.def pasos      = r21
+.def avance     = r22
+.def iniciado   = r23
+.def data       = r24
+
+.equ DIR_ABAJO      = (1 << PD4)
+.equ DIR_ARRIBA     = (1 << PD5)
+.equ DIR_DER        = (1 << PD6)
+.equ DIR_IZQ        = (1 << PD7)
+
+.equ DIR_ARR_DER    = (1 << PD5) | (1 << PD6)
+.equ DIR_ARR_IZQ    = (1 << PD5) | (1 << PD7)
+.equ DIR_ABJ_DER    = (1 << PD4) | (1 << PD6)
+.equ DIR_ABJ_IZQ    = (1 << PD4) | (1 << PD7)
+
+.org 0x0000
+    rjmp RESET
+
+RESET:
+
+    ldi temp, HIGH(RAMEND)
+    out SPH, temp
+
+    ldi temp, LOW(RAMEND)
+    out SPL, temp
+
+    ldi temp, 0b11111110
+    out DDRD, temp
+
+    clr temp
+    out PORTD, temp
+
+    clr avance
+    clr iniciado
+
+    rcall UART_INIT
+    rcall PEN_UP
+    rcall PRINT_MENU
+
+MAIN:
+
+    rcall UART_RX
+
+    cpi data, 13
+    breq MAIN
+
+    cpi data, 10
+    breq MAIN
+
+    cpi data, '1'
+    breq CMD_TRIANGULO
+
+    cpi data, '2'
+    breq CMD_CIRCULO
+
+    cpi data, '4'
+    breq CMD_CASA
+
+    cpi data, 'R'
+    breq CMD_MENU
+
+    cpi data, 'r'
+    breq CMD_MENU
+
+    rcall PRINT_ERROR
+    rjmp MAIN
+
+CMD_TRIANGULO:
+    rcall TRIANGULO
+    rcall PRINT_LISTO
+    rjmp MAIN
+
+CMD_CIRCULO:
+    rcall CIRCULO
+    rcall PRINT_LISTO
+    rjmp MAIN
+
+CMD_CASA:
+    rcall CASA
+    rcall PRINT_LISTO
+    rjmp MAIN
+
+CMD_MENU:
+    rcall PRINT_MENU
+    rjmp MAIN
+
+TRIANGULO:
+
+    rcall PEN_DOWN
+
+    ldi dir_mask, DIR_ABJ_IZQ
+    ldi dur_pasos, 14
+    rcall MOVER_TRAZO
+
+    ldi dir_mask, DIR_DER
+    ldi dur_pasos, 28
+    rcall MOVER_TRAZO
+
+    ldi dir_mask, DIR_ARR_IZQ
+    ldi dur_pasos, 14
+    rcall MOVER_TRAZO
+
+    rcall PEN_UP
+    ret
+
+CIRCULO:
+
+    rcall PEN_DOWN
+    rcall CIRCULO_TRAZO
+    rcall PARAR_MOTORES
+    rcall PEN_UP
+
+    ret
+
+CIRCULO_TRAZO:
+
+    ldi dir_mask, DIR_ARRIBA
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_IZQ
+    ldi dur_pasos, 1
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARRIBA
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_IZQ
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARRIBA
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_IZQ
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_IZQ
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_IZQ
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_IZQ
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_IZQ
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_IZQ
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_IZQ
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_IZQ
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_IZQ
+    ldi dur_pasos, 1
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_IZQ
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_IZQ
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_IZQ
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_IZQ
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_IZQ
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABAJO
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_IZQ
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABAJO
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_IZQ
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABAJO
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABAJO
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_DER
+    ldi dur_pasos, 1
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABAJO
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_DER
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABAJO
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_DER
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_DER
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_DER
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_DER
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_DER
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ABJ_DER
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_DER
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_DER
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_DER
+    ldi dur_pasos, 1
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_DER
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_DER
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_DER
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_DER
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_DER
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARRIBA
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_DER
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARRIBA
+    ldi dur_pasos, 3
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARR_DER
+    ldi dur_pasos, 2
+    rcall MOVER_TRAZO_HD
+
+    ldi dir_mask, DIR_ARRIBA
+    ldi dur_pasos, 4
+    rcall MOVER_TRAZO_HD
+
+    ret
+
+CASA:
+
+    rcall PEN_DOWN
+
+    ldi data, 2
+    rcall ABAJO_IZQUIERDA
+
+    ldi data, 3
+    rcall ABAJO
+
+    ldi data, 1
+    rcall DERECHA
+
+    ldi data, 2
+    rcall ARRIBA
+
+    ldi data, 1
+    rcall DERECHA
+
+    ldi data, 2
+    rcall ABAJO
+
+    rcall PEN_UP
+
+    ldi data, 2
+    rcall ARRIBA
+
+    rcall PEN_DOWN
+
+    ldi data, 1
+    rcall DERECHA
+
+    ldi data, 2
+    rcall ABAJO
+
+    ldi data, 2
+    rcall IZQUIERDA
+
+    rcall PEN_UP
+
+    ldi data, 2
+    rcall DERECHA
+
+    rcall PEN_DOWN
+
+    ldi data, 1
+    rcall DERECHA
+
+    ldi data, 3
+    rcall ARRIBA
+
+    ldi data, 4
+    rcall IZQUIERDA
+
+    rcall PEN_UP
+
+    ldi data, 4
+    rcall DERECHA
+
+    rcall PEN_DOWN
+
+    ldi data, 2
+    rcall ARRIBA_IZQUIERDA
+
+    rcall PEN_UP
+
+    ret
+
+PEN_DOWN:
+
+    rcall PARAR_MOTORES
+
+    sbi PORTD, PD2
+    rcall DELAY_SOLENOIDE
+    cbi PORTD, PD2
+
+    rcall DELAY_100MS
+
+    ret
+
+PEN_UP:
+
+    rcall PARAR_MOTORES
+
+    sbi PORTD, PD3
+    rcall DELAY_SOLENOIDE
+    cbi PORTD, PD3
+
+    rcall DELAY_100MS
+
+    ret
+
+MOVER_TRAZO:
+
+    in temp, PORTD
+    andi temp, 0b00001111
+
+    or temp, dir_mask
+    out PORTD, temp
+
+MOVER_TRAZO_LOOP:
+
+    tst dur_pasos
+    breq MOVER_TRAZO_FIN
+
+    rcall DELAY_150MS
+
+    dec dur_pasos
+    rjmp MOVER_TRAZO_LOOP
+
+MOVER_TRAZO_FIN:
+
+    rcall PARAR_MOTORES
+    ret
+
+MOVER_TRAZO_HD:
+
+    in temp, PORTD
+    andi temp, 0b00001111
+
+    or temp, dir_mask
+    out PORTD, temp
+
+MOVER_TRAZO_HD_LOOP:
+
+    tst dur_pasos
+    breq MOVER_TRAZO_HD_FIN
+
+    rcall DELAY_40MS
+
+    dec dur_pasos
+    rjmp MOVER_TRAZO_HD_LOOP
+
+MOVER_TRAZO_HD_FIN:
+
+    ret
+
+PARAR_MOTORES:
+
+    in temp, PORTD
+    andi temp, 0b00001111
+    out PORTD, temp
+
+    ret
+
+ABAJO:
+    ldi dir_mask, DIR_ABAJO
+    rjmp MOVIMIENTO_NORMAL
+
+ARRIBA:
+    ldi dir_mask, DIR_ARRIBA
+    rjmp MOVIMIENTO_NORMAL
+
+IZQUIERDA:
+    ldi dir_mask, DIR_IZQ
+    rjmp MOVIMIENTO_NORMAL
+
+DERECHA:
+    ldi dir_mask, DIR_DER
+    rjmp MOVIMIENTO_NORMAL
+
+ABAJO_IZQUIERDA:
+    ldi dir_mask, DIR_ABJ_IZQ
+    rjmp MOVIMIENTO_NORMAL
+
+ABAJO_DERECHA:
+    ldi dir_mask, DIR_ABJ_DER
+    rjmp MOVIMIENTO_NORMAL
+
+ARRIBA_IZQUIERDA:
+    ldi dir_mask, DIR_ARR_IZQ
+    rjmp MOVIMIENTO_NORMAL
+
+ARRIBA_DERECHA:
+    ldi dir_mask, DIR_ARR_DER
+    rjmp MOVIMIENTO_NORMAL
+
+MOVIMIENTO_NORMAL:
+
+    in temp, PORTD
+    andi temp, 0b00001111
+
+    or temp, dir_mask
+    out PORTD, temp
+
+    mov segundos, data
+
+MOVIMIENTO_NORMAL_LOOP:
+
+    rcall DELAY_1S
+
+    dec segundos
+    brne MOVIMIENTO_NORMAL_LOOP
+
+    rcall PARAR_MOTORES
+
+    ret
+
+DELAY_1S:
+
+    ldi contador, 100
+
+DELAY_1S_LOOP:
+
+    rcall DELAY_10MS
+
+    dec contador
+    brne DELAY_1S_LOOP
+
+    ret
+
+DELAY_150MS:
+
+    ldi contador, 15
+
+DELAY_150MS_LOOP:
+
+    rcall DELAY_10MS
+
+    dec contador
+    brne DELAY_150MS_LOOP
+
+    ret
+
+DELAY_100MS:
+
+    ldi contador, 10
+
+DELAY_100MS_LOOP:
+
+    rcall DELAY_10MS
+
+    dec contador
+    brne DELAY_100MS_LOOP
+
+    ret
+
+DELAY_40MS:
+
+    ldi contador, 4
+
+DELAY_40MS_LOOP:
+
+    rcall DELAY_10MS
+
+    dec contador
+    brne DELAY_40MS_LOOP
+
+    ret
+
+DELAY_10MS:
+
+    ldi r26, 208
+
+DELAY_10MS_A:
+
+    ldi r27, 255
+
+DELAY_10MS_B:
+
+    dec r27
+    brne DELAY_10MS_B
+
+    dec r26
+    brne DELAY_10MS_A
+
+    ret
+
+DELAY_SOLENOIDE:
+
+    ldi contador, 20
+
+DELAY_SOLENOIDE_LOOP:
+
+    rcall DELAY_10MS
+
+    dec contador
+    brne DELAY_SOLENOIDE_LOOP
+
+    ret
+
+UART_INIT:
+
+    clr temp
+    sts UCSR0A, temp
+
+    ldi temp, 0
+    sts UBRR0H, temp
+
+    ldi temp, 103
+    sts UBRR0L, temp
+
+    ldi temp, (1 << RXEN0) | (1 << TXEN0)
+    sts UCSR0B, temp
+
+    ldi temp, (1 << UCSZ01) | (1 << UCSZ00)
+    sts UCSR0C, temp
+
+    ret
+
+UART_RX:
+
+UART_RX_WAIT:
+
+    lds temp, UCSR0A
+
+    sbrs temp, RXC0
+    rjmp UART_RX_WAIT
+
+    lds data, UDR0
+
+    ret
+
+UART_TX:
+
+UART_TX_WAIT:
+
+    lds temp, UCSR0A
+
+    sbrs temp, UDRE0
+    rjmp UART_TX_WAIT
+
+    sts UDR0, data
+
+    ret
+
+UART_PUTS:
+
+    lpm data, Z+
+
+    tst data
+    breq UART_PUTS_FIN
+
+    rcall UART_TX
+    rjmp UART_PUTS
+
+UART_PUTS_FIN:
+    ret
+
+PRINT_MENU:
+
+    ldi ZL, LOW(2 * TXT_TITULO)
+    ldi ZH, HIGH(2 * TXT_TITULO)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_1)
+    ldi ZH, HIGH(2 * TXT_1)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_2)
+    ldi ZH, HIGH(2 * TXT_2)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_4)
+    ldi ZH, HIGH(2 * TXT_4)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_R)
+    ldi ZH, HIGH(2 * TXT_R)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_PROMPT)
+    ldi ZH, HIGH(2 * TXT_PROMPT)
+    rcall UART_PUTS
+
+    ret
+
+PRINT_LISTO:
+    ldi ZL, LOW(2 * TXT_LISTO)
+    ldi ZH, HIGH(2 * TXT_LISTO)
+    rcall UART_PUTS
+    ret
+
+PRINT_ERROR:
+    ldi ZL, LOW(2 * TXT_ERROR)
+    ldi ZH, HIGH(2 * TXT_ERROR)
+    rcall UART_PUTS
+    ret
+
+TXT_TITULO:
+    .db 13,10
+    .db "PLOTTER GRUPO 9",13,10
+    .db 0,0
+
+TXT_1:
+    .db "1 TRIANGULO",13,10
+    .db 0,0
+
+TXT_2:
+    .db "2 CIRCULO",13,10
+    .db 0,0
+
+TXT_4:
+    .db "4 CASA",13,10
+    .db 0,0
+
+TXT_R:
+    .db "R MENU",13,10
+    .db 0,0
+
+TXT_PROMPT:
+    .db "> "
+    .db 0,0
+
+TXT_LISTO:
+    .db 13,10
+    .db "FIGURA TERMINADA",13,10
+    .db "> "
+    .db 0,0
+
+TXT_ERROR:
+    .db 13,10
+    .db "OPCION INCORRECTA",13,10
+    .db "> "
+    .db 0,0
