@@ -1,0 +1,218 @@
+MAIN:
+
+    rcall UART_RX
+
+    cpi data, 13
+    breq MAIN
+
+    cpi data, 10
+    breq MAIN
+
+    cpi data, '1'
+    breq IR_TRIANGULO
+
+    cpi data, '2'
+    breq IR_CIRCULO
+
+    cpi data, '4'
+    breq IR_CASA
+
+    cpi data, 'T'
+    breq IR_TODAS
+
+    cpi data, 't'
+    breq IR_TODAS
+
+    cpi data, 'R'
+    breq IR_MENU
+
+    cpi data, 'r'
+    breq IR_MENU
+
+    rcall PRINT_ERROR
+    rjmp MAIN
+
+IR_TRIANGULO:
+    rjmp CMD_TRIANGULO
+
+IR_CIRCULO:
+    rjmp CMD_CIRCULO
+
+IR_CASA:
+    rjmp CMD_CASA
+
+IR_TODAS:
+    rjmp CMD_TODAS
+
+IR_MENU:
+    rjmp CMD_MENU
+
+CMD_TRIANGULO:
+    rcall PREPARAR_SECUENCIA
+    rcall TRIANGULO
+    rcall AVANZAR_SIGUIENTE
+    rcall PRINT_LISTO
+    rjmp MAIN
+
+CMD_CIRCULO:
+    rcall PREPARAR_SECUENCIA
+    rcall CIRCULO
+    rcall AVANZAR_SIGUIENTE
+    rcall PRINT_LISTO
+    rjmp MAIN
+
+CMD_CASA:
+    rcall PREPARAR_SECUENCIA
+    rcall CASA
+    rcall AVANZAR_SIGUIENTE
+    rcall PRINT_LISTO
+    rjmp MAIN
+
+CMD_MENU:
+    rcall PRINT_MENU
+    rjmp MAIN
+
+PREPARAR_SECUENCIA:
+    tst iniciado
+    brne PREPARAR_FIN
+
+    rcall IR_ZONA_DIBUJO
+    ldi iniciado, 1
+
+PREPARAR_FIN:
+    ret
+
+IR_ZONA_DIBUJO:
+    rcall PEN_UP
+
+    ldi data, 3
+    rcall IZQUIERDA
+
+    ldi data, 3
+    rcall ABAJO
+    ret
+
+AVANZAR_SIGUIENTE:
+    rcall PEN_UP
+
+    ldi data, 3
+    rcall IZQUIERDA
+
+    inc avance
+    ret
+
+VOLVER_INICIO:
+    rcall PEN_UP
+
+VOLVER_INICIO_LOOP:
+    tst avance
+    breq VOLVER_INICIO_FIN
+
+    ldi data, 3
+    rcall DERECHA
+
+    dec avance
+    rjmp VOLVER_INICIO_LOOP
+
+VOLVER_INICIO_FIN:
+    ret
+
+CMD_TODAS:
+    rcall PREPARAR_SECUENCIA
+    rcall VOLVER_INICIO
+
+    rcall TRIANGULO
+    rcall AVANZAR_SIGUIENTE
+
+    rcall CIRCULO
+    rcall AVANZAR_SIGUIENTE
+
+    rcall CASA
+    rcall AVANZAR_SIGUIENTE
+
+    rcall PRINT_LISTO
+    rjmp MAIN
+PRINT_MENU:
+
+    ldi ZL, LOW(2 * TXT_TITULO)
+    ldi ZH, HIGH(2 * TXT_TITULO)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_1)
+    ldi ZH, HIGH(2 * TXT_1)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_2)
+    ldi ZH, HIGH(2 * TXT_2)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_4)
+    ldi ZH, HIGH(2 * TXT_4)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_T)
+    ldi ZH, HIGH(2 * TXT_T)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_R)
+    ldi ZH, HIGH(2 * TXT_R)
+    rcall UART_PUTS
+
+    ldi ZL, LOW(2 * TXT_PROMPT)
+    ldi ZH, HIGH(2 * TXT_PROMPT)
+    rcall UART_PUTS
+
+    ret
+
+PRINT_LISTO:
+    ldi ZL, LOW(2 * TXT_LISTO)
+    ldi ZH, HIGH(2 * TXT_LISTO)
+    rcall UART_PUTS
+    ret
+
+PRINT_ERROR:
+    ldi ZL, LOW(2 * TXT_ERROR)
+    ldi ZH, HIGH(2 * TXT_ERROR)
+    rcall UART_PUTS
+    ret
+
+TXT_TITULO:
+    .db 13,10
+    .db "PLOTTER GRUPO 9",13,10
+    .db 0,0
+
+TXT_1:
+    .db "1 TRIANGULO",13,10
+    .db 0,0
+
+TXT_2:
+    .db "2 CIRCULO",13,10
+    .db 0,0
+
+TXT_4:
+    .db "4 CASA",13,10
+    .db 0,0
+
+TXT_T:
+    .db "T TODAS",13,10
+    .db 0,0
+
+TXT_R:
+    .db "R MENU",13,10
+    .db 0,0
+
+TXT_PROMPT:
+    .db "> "
+    .db 0,0
+
+TXT_LISTO:
+    .db 13,10
+    .db "FIGURA TERMINADA",13,10
+    .db "> "
+    .db 0,0
+
+TXT_ERROR:
+    .db 13,10
+    .db "OPCION INCORRECTA",13,10
+    .db "> "
+    .db 0,0
