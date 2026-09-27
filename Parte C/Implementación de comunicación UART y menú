@@ -1,0 +1,60 @@
+UART_INIT:
+
+    clr temp
+    sts UCSR0A, temp
+
+    ldi temp, 0
+    sts UBRR0H, temp
+
+    ldi temp, 103
+    sts UBRR0L, temp
+
+    ldi temp, (1 << RXEN0) | (1 << TXEN0)
+    sts UCSR0B, temp
+
+    ldi temp, (1 << UCSZ01) | (1 << UCSZ00)
+    sts UCSR0C, temp
+
+    ret
+
+
+UART_RX:
+
+UART_RX_WAIT:
+
+    lds temp, UCSR0A
+
+    sbrs temp, RXC0
+    rjmp UART_RX_WAIT
+
+    lds data, UDR0
+
+    ret
+
+
+UART_TX:
+
+UART_TX_WAIT:
+
+    lds temp, UCSR0A
+
+    sbrs temp, UDRE0
+    rjmp UART_TX_WAIT
+
+    sts UDR0, data
+
+    ret
+
+
+UART_PUTS:
+
+    lpm data, Z+
+
+    tst data
+    breq UART_PUTS_FIN
+
+    rcall UART_TX
+    rjmp UART_PUTS
+
+UART_PUTS_FIN:
+    ret
